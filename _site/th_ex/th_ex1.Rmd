@@ -1,0 +1,51 @@
+---
+title: "Take-home Exercise 1"
+description: |
+  In this take-home Exercise, I will explore .
+author:
+  - name: LIU Zhenglin 
+    url: https://example.com/norajones
+    affiliation: SMU SCIS
+    affiliation_url: https://example.com/spacelysprokets
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Overview
+
+In this take-home exercise,  
+
+# Getting Started
+
+The chunk code below will do the trick.
+
+```{r}
+packages = c('tidyverse')
+
+for (p in packages){
+  if(!require(p, character.only = T)){
+    install.package(p)
+  }
+  library(p, character.only = T)
+}
+```
+# Importing Data
+
+The code chunk below import *Participants.csv* from data folder into R by using [`read_csv()`](https://readr.tidyverse.org/reference/read_delim.html) of [**readr** package](https://readr.tidyverse.org/index.html) and save it as an tibble data frame called *participants*. 
+
+```{r}
+participants <- read_csv("data/Participants.csv")
+```
+# Charts
+
+The code chunk below plot a bar chart by using [`geom_bar()`](https://ggplot2.tidyverse.org/reference/geom_bar.html) by [**ggplot2 package**](https://ggplot2.tidyverse.org/index.html)
+
+```{r}
+ggplot(data = participants,
+       aes(x = householdSize, fill = haveKids))+
+  geom_bar()
+```

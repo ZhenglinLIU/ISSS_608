@@ -1,9 +1,18 @@
 name: "ISSS_608"
-title: "web"
+title: "Visual Analytics"
 description: |
   web
 output_dir: "_site"
 navbar:
+  left:
+    - text: "Take-home Exercise"
+      menu: 
+      - text: "Take-home Exercise 1"
+        href: "th_ex/th_ex1.html"
+    - text: "DataVis Makeover"
+      menu: 
+      - text: "DataVis Makeover 1"
+        href: ""
   right:
     - text: "Home"
       href: index.html

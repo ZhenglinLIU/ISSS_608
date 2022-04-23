@@ -1,7 +1,7 @@
 ---
-title: "web"
+title: "Visual Analytics"
 description: |
-  Welcome to the website. I hope you enjoy it!
+  This website documents my learning journey of visual analytics. 
 site: distill::distill_website
 ---
 
