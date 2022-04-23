@@ -12,7 +12,8 @@ output: distill::distill_article
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE,
+                      eval = TRUE)
 ```
 
 # Overview
@@ -39,6 +40,7 @@ The code chunk below import *Participants.csv* from data folder into R by using 
 
 ```{r}
 participants <- read_csv("data/Participants.csv")
+Schools <- read_csv("data/Schools.csv")
 ```
 # Charts
 
@@ -46,6 +48,21 @@ The code chunk below plot a bar chart by using [`geom_bar()`](https://ggplot2.ti
 
 ```{r}
 ggplot(data = participants,
-       aes(x = householdSize, fill = haveKids))+
+       aes(x = householdSize))+
+  geom_bar()+
+  geom_text(stat="count",
+      aes(label=paste0(..count..,", ",
+      round(..count../sum(..count..)*100,
+        1),"%")),
+      vjust=-1) +
+  xlab("Household Size") +
+  ylab("No. of\nPupils") +
+  theme(axis.title.y=element_text(angle = 0))
+```
+
+
+```{r}
+ggplot(data = participants,
+       aes(x = educationLevel, fill = haveKids))+
   geom_bar()
 ```
