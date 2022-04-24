@@ -1,7 +1,7 @@
 ---
 title: "Take-home Exercise 1"
 description: |
-  In this take-home Exercise, I will explore .
+  In this take-home Exercise, I will explore the relationships between different features in participants dataset.
 author:
   - name: LIU Zhenglin 
     url: https://example.com/norajones
@@ -16,13 +16,15 @@ knitr::opts_chunk$set(echo = TRUE,
                       eval = TRUE)
 ```
 
-# Overview
+# 1. Overview
 
-In this take-home exercise,  
+In this take-home exercise, I will explore the relationships between different features in participants dataset, and try to find the which kind of people have higher joviality. 
 
-# Getting Started
+# 2. Getting Started
 
-The chunk code below will do the trick.
+The packages required are tidyverse (included relevant packages for data analyses such as ggplot2, readr and dplyr), readxl, ggrepel and knitr.
+
+The code chunk below is used to install and load the required packages onto RStudio. 
 
 ```{r}
 packages = c('tidyverse')
@@ -33,36 +35,117 @@ for (p in packages){
   }
   library(p, character.only = T)
 }
+
+library(patchwork)
 ```
-# Importing Data
+# 3. Importing Data
 
 The code chunk below import *Participants.csv* from data folder into R by using [`read_csv()`](https://readr.tidyverse.org/reference/read_delim.html) of [**readr** package](https://readr.tidyverse.org/index.html) and save it as an tibble data frame called *participants*. 
 
 ```{r}
 participants <- read_csv("data/Participants.csv")
-Schools <- read_csv("data/Schools.csv")
+glimpse(participants)
 ```
-# Charts
+# 4. Analysis
 
-The code chunk below plot a bar chart by using [`geom_bar()`](https://ggplot2.tidyverse.org/reference/geom_bar.html) by [**ggplot2 package**](https://ggplot2.tidyverse.org/index.html)
+From the information of this data set above, we can see that there are 7 different columns in this data set, but participant Id column which presents different participant, has over 1000 unique values. I will not include this feature in my analysis since is not a meaningful feature for participants. As for the rest features, plot the distribution for each one as a preparation for further analysis. 
+
+### 4.1 Distribution of features
+
+The code chunk below plot a bar chart by using [`geom_bar()`](https://ggplot2.tidyverse.org/reference/geom_bar.html) by [**ggplot2 package**](https://ggplot2.tidyverse.org/index.html).
 
 ```{r}
-ggplot(data = participants,
+p_householdsize <- ggplot(data = participants,
        aes(x = householdSize))+
-  geom_bar()+
-  geom_text(stat="count",
-      aes(label=paste0(..count..,", ",
-      round(..count../sum(..count..)*100,
-        1),"%")),
-      vjust=-1) +
-  xlab("Household Size") +
-  ylab("No. of\nPupils") +
-  theme(axis.title.y=element_text(angle = 0))
+  geom_bar(color="grey25", 
+           fill="grey90") +
+  ggtitle("Distribution of Household Size")
+
+p_havekids <- ggplot(data=participants, 
+             aes(x = haveKids)) +
+  geom_bar(color="grey25", 
+           fill="grey90") + 
+  ggtitle("Distribution of Have Kids")
+
+p_age <- ggplot(data=participants, 
+             aes(x = age)) +
+  geom_histogram(boundary = 100,
+                 color="grey25", 
+                 fill="grey90") +
+  coord_cartesian(xlim=c(16, 61)) +
+  ggtitle("Distribution of Age")
+
+p_edu <- ggplot(data=participants, 
+             aes(x = educationLevel)) +
+  geom_bar(boundary = 100,
+                 color="grey25", 
+                 fill="grey90") +
+  ggtitle("Distribution of Education Level")
+
+p_interest <- ggplot(data=participants, 
+             aes(x = interestGroup)) +
+  geom_bar(boundary = 100,
+                 color="grey25", 
+                 fill="grey90") +
+  ggtitle("Distribution of Interest Group")
+
+p_joviality<- ggplot(data=participants, 
+             aes(x = joviality)) +
+  geom_density() +
+  ggtitle("Distribution of Joviality")
+
+(p_householdsize/p_havekids/p_interest)|(p_age/p_edu/p_joviality)
 ```
 
+In the participants, most of them don't have kids and have high school or college education level. There is no a dominant interest in these participants, and the joviality distribution is quite uniform. 
+
+### 4.2 Data Processing
+From the distributions figure of features above, we can see that the age feature has too many unique value. We can combine them into different age group for our analysis.
+
+The code chunk below plot a bar chart by using [**mutate**](https://dplyr.tidyverse.org/reference/mutate.html) to build a new column based on age and save the new dataset as participants_age.
+
+```{r}
+participants_age <- participants %>%
+  mutate(age_group = cut(age, breaks = c(17,25,35,45,55,60)))
+```
+
+### 4.3 Feature Relationship Exploration
+
+From the distribution figures and the features name, I want to see the relationship between some features. 
+
+Relationship between household size and have kids
+
+```{r}
+ggplot(data = participants_age,
+       aes(x = householdSize, fill = haveKids))+
+  geom_bar()+
+  ggtitle("Distribution of household size with haveKids feature")
+```
+
+From the chart we can have a conclusion, the participants whose household size equals to 3, all of them have kids. 
 
 ```{r}
 ggplot(data = participants,
        aes(x = educationLevel, fill = haveKids))+
   geom_bar()
+```
+
+
+```{r}
+ggplot(data = participants_age,
+       aes(x = age_group, fill = haveKids))+
+  geom_bar()
+```
+
+
+```{r}
+ggplot(participants_age, aes(x = educationLevel, y = joviality, fill = haveKids)) +
+  introdataviz::geom_split_violin(alpha = .4, trim = FALSE) +
+  geom_boxplot(width = .2, alpha = .6, fatten = NULL, show.legend = FALSE) +
+  stat_summary(fun.data = "mean_se", geom = "pointrange", show.legend = F, 
+               position = position_dodge(.175)) +
+  scale_y_continuous(breaks = seq(0, 1, 0.2), 
+                     limits = c(0, 1)) +
+  scale_fill_brewer(palette = "Dark2", name = "Have Kids")
+  
 ```
