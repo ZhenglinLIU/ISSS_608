@@ -97,7 +97,7 @@ p_joviality<- ggplot(data=participants,
 (p_householdsize/p_havekids/p_interest)|(p_age/p_edu/p_joviality)
 ```
 
-In the participants, most of them don't have kids and have high school or college education level. There is no a dominant interest in these participants, and the joviality distribution is quite uniform. 
+In the participants, most of them don't have kids and have high school or college education level. There is no a dominant interest in these participants, and the joviality distribution is quite uniform. The numbers of participants with different household size are quite equal. The age distribution is ruleless. 
 
 ### 4.2 Data Processing
 From the distributions figure of features above, we can see that the age feature has too many unique value. We can combine them into different age group for our analysis.
@@ -124,24 +124,42 @@ ggplot(data = participants_age,
 
 From the chart we can have a conclusion, the participants whose household size equals to 3, all of them have kids. 
 
+Then I want to find if there are any features can influence people's will to have a kid
+
 ```{r}
-ggplot(data = participants,
-       aes(x = educationLevel, fill = haveKids))+
-  geom_bar()
+pk1 <- ggplot(data = participants,
+              aes(x = educationLevel, fill = haveKids))+
+        geom_bar() +
+        
+        ggtitle("Have kids according to Education Level")
+
+pk2 <- ggplot(data = participants_age,
+              aes(x = age_group, fill = haveKids))+
+        geom_bar() +
+        ggtitle("Have kids according to Age Group")
+
+pk3 <- ggplot(data = participants_age,
+              aes(x = interestGroup, fill = haveKids))+
+        geom_bar() +
+        ggtitle("Have kids according to Interest Group")
+
+pk1
+pk2
+pk3
 ```
+
 
 
 ```{r}
 ggplot(data = participants_age,
        aes(x = age_group, fill = haveKids))+
   geom_bar() +
-  
-  
+  ggtitle("Have kids according to Education Level")
 ```
 
 
 ```{r}
-ggplot(participants_age, aes(x = educationLevel, y = joviality, fill = haveKids)) +
+ggplot(participants_age, aes(x = interestGroup, y = joviality, fill = haveKids)) +
   introdataviz::geom_split_violin(alpha = .4, trim = FALSE) +
   geom_boxplot(width = .2, alpha = .6, fatten = NULL, show.legend = FALSE) +
   stat_summary(fun.data = "mean_se", geom = "pointrange", show.legend = F, 
@@ -151,3 +169,5 @@ ggplot(participants_age, aes(x = educationLevel, y = joviality, fill = haveKids)
   scale_fill_brewer(palette = "Dark2", name = "Have Kids")
   
 ```
+From this chart we can see the participants in interest group G, if they have kids, they are much happier than those who don't have kids in the same interest group. The same situation is also shown in interest group I, but it is not obvious as group G. Except these two interest groups, the average joviality don't change too much according to whether the participants have kids. 
+
