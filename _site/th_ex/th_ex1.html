@@ -2611,10 +2611,10 @@ participants_age.</p>
 </div>
 <h3 id="feature-relationship-exploration">4.3 Feature Relationship
 Exploration</h3>
-<h3 id="section">4.3.1</h3>
 <p>From the distribution figures and the features name, I want to see
 the relationship between some features.</p>
-<p>Relationship between household size and have kids</p>
+<h3 id="household-size-and-have-kids">4.3.1 Household Size and Have
+Kids</h3>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">participants_age</span>,
@@ -2627,9 +2627,8 @@ the relationship between some features.</p>
 </div>
 <p>From the chart we can have a conclusion, the participants whose
 household size equals to 3, all of them have kids.</p>
-<h3 id="section-1">4.3.2</h3>
-<p>Then I want to find if there are any features can influence people’s
-will to have a kid</p>
+<h3 id="other-features-may-influence-peoples-will-to-have-kids">4.3.2
+Other features may influence people’s will to have kids</h3>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="va">pk1</span> <span class="op">&lt;-</span> <span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">participants</span>,
@@ -2665,8 +2664,8 @@ will to have a kid</p>
 </div>
 <p>Interest group have higher influence on the situation of having kids
 than education level and age group.</p>
-<h3 id="section-2">4.3.3</h3>
-<p>Whether the age will influence education level a lot?</p>
+<h3 id="age-group-and-education-level">4.3.3 Age Group and Education
+Level</h3>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">participants_age</span>,
@@ -2679,8 +2678,8 @@ than education level and age group.</p>
 </div>
 <p>From different age group, the education level distribution is quite
 same.</p>
-<h3 id="section-3">4.3.4</h3>
-<p>Interest group and kids influence on joviality</p>
+<h3 id="interest-group-and-kids-influence-on-joviality">4.3.4 Interest
+group and kids influence on joviality</h3>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="fu">ggplot</span><span class="op">(</span><span class="va">participants_age</span>, <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">interestGroup</span>, y <span class="op">=</span> <span class="va">joviality</span>, fill <span class="op">=</span> <span class="va">haveKids</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>
