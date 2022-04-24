@@ -26,7 +26,7 @@ The packages required are tidyverse (included relevant packages for data analyse
 
 The code chunk below is used to install and load the required packages onto RStudio. 
 
-```{r}
+```{r, echo=FALSE}
 packages = c('tidyverse')
 
 for (p in packages){
@@ -111,6 +111,7 @@ participants_age <- participants %>%
 
 ### 4.3 Feature Relationship Exploration
 
+### 4.3.1
 From the distribution figures and the features name, I want to see the relationship between some features. 
 
 Relationship between household size and have kids
@@ -123,6 +124,8 @@ ggplot(data = participants_age,
 ```
 
 From the chart we can have a conclusion, the participants whose household size equals to 3, all of them have kids. 
+
+### 4.3.2
 
 Then I want to find if there are any features can influence people's will to have a kid
 
@@ -148,15 +151,21 @@ pk2
 pk3
 ```
 
+Interest group have higher influence on the situation of having kids than education level and age group. 
 
+### 4.3.3
+Whether the age will influence education level a lot? 
 
 ```{r}
 ggplot(data = participants_age,
-       aes(x = age_group, fill = haveKids))+
+       aes(x = age_group, fill = educationLevel))+
   geom_bar() +
-  ggtitle("Have kids according to Education Level")
+  ggtitle("Age Group according to Education Level")
 ```
+From different age group, the education level distribution is quite same. 
 
+### 4.3.4
+Interest group and kids influence on joviality
 
 ```{r}
 ggplot(participants_age, aes(x = interestGroup, y = joviality, fill = haveKids)) +
@@ -169,5 +178,5 @@ ggplot(participants_age, aes(x = interestGroup, y = joviality, fill = haveKids))
   scale_fill_brewer(palette = "Dark2", name = "Have Kids")
   
 ```
-From this chart we can see the participants in interest group G, if they have kids, they are much happier than those who don't have kids in the same interest group. The same situation is also shown in interest group I, but it is not obvious as group G. Except these two interest groups, the average joviality don't change too much according to whether the participants have kids. 
+From this chart we can see the participants in interest group G, if they have kids, they are much happier than those who don't have kids in the same interest group. The same situation is also shown in interest group I, but it is not obvious as group G. Except these two interest groups, the average joviality don't change too much according to whether the participants have kids. Although the average of joviality is quite same, but some distribution is quite different, in interest group C, if the participants don't have kids, they are tend to very happy or very unhappy, while if they have kids, their joviality distribution is quite uniform, don't have big fluctuation. 
 
