@@ -26,7 +26,7 @@ The packages required are tidyverse (included relevant packages for data analyse
 
 The code chunk below is used to install and load the required packages onto RStudio. 
 
-```{r, echo=FALSE}
+```{r}
 packages = c('tidyverse')
 
 for (p in packages){
