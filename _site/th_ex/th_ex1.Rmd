@@ -134,7 +134,9 @@ ggplot(data = participants,
 ```{r}
 ggplot(data = participants_age,
        aes(x = age_group, fill = haveKids))+
-  geom_bar()
+  geom_bar() +
+  
+  
 ```
 
 
