@@ -9,6 +9,8 @@ navbar:
       menu: 
       - text: "Take-home Exercise 1"
         href: "th_ex/th_ex1.html"
+      - text: "Take-home Exercise 2"
+        href: "th_ex/th_ex2.html"
     - text: "DataVis Makeover"
       menu: 
       - text: "DataVis Makeover 1"
