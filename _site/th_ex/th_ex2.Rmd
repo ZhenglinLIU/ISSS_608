@@ -4,9 +4,9 @@ description: |
   In this take-home exercise, I'm going to select one of the Take-home Exercise 1 prepared by my classmate, Lee Xiao Qi, critic the submission in terms of clarity and aesthetics and remake the original design by using the data visualisation principles and best practice you had learned in Lesson 1 and 2.
 author:
   - name: LIU Zhenglin
-    url: https://example.com/norajones
+    url: https://www.linkedin.com/in/zhenglin-liu-a86aa5219/
     affiliation: SMU SCIS
-    affiliation_url: https://example.com/spacelysprokets
+    affiliation_url: https://scis.smu.edu.sg/
 date: "`r Sys.Date()`"
 output: distill::distill_article
 ---
@@ -68,7 +68,7 @@ From the original view, we can only have a general view of the count of differen
 
 So I will try to solve the problems that I mentioned above, regroup age column and shows the count number of each age group.
 
-### 2.1.2 Remake View
+### 2.1.2 Age -- Remake View
 ```{r}
 demographic_data <- demographic_data %>%
   mutate(AgeGroup = cut(age, breaks = c(15,20,25,30,35,40,45,50,55,60)))
@@ -166,4 +166,7 @@ ggplot(data=demographic_data) +
   facet_wrap(~interestGroup, ncol = 5)
 ```
 
+# 3 Conlusion
 
+The original design of Xiao Qi is quite good, so I just choose Three charts which I think I can make a significant changes on. 
+From this exercise, I realized that sometimes, I think I can understand the charts I make is enough, but the truth is I need everyone can understand my chart, and I need to make the charts more explainable.  
