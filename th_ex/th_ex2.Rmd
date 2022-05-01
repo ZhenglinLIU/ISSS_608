@@ -1,0 +1,169 @@
+---
+title: "Take-home Exercise 2"
+description: |
+  In this take-home exercise, I'm going to select one of the Take-home Exercise 1 prepared by my classmate, Lee Xiao Qi, critic the submission in terms of clarity and aesthetics and remake the original design by using the data visualisation principles and best practice you had learned in Lesson 1 and 2.
+author:
+  - name: LIU Zhenglin
+    url: https://example.com/norajones
+    affiliation: SMU SCIS
+    affiliation_url: https://example.com/spacelysprokets
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      eval = TRUE)
+```
+
+# 1. Data Preparation 
+Before remake the plots in terms of clarity and aesthetics, I need to copy all the preparation part of my classmate to make sure we have the same data. 
+
+### 1.1 Importing Relevant Package
+```{r}
+packages = c('tidyverse','skimr','ggrepel', "patchwork")
+
+for(p in packages){
+  if(!require(p, character.only =T)){
+    install.packages(p)
+    }
+  library(p, character.only =T)
+}
+```
+
+### 1.2 Importing Data
+```{r}
+demographic_data <- read_csv("data/Participants.csv")
+```
+
+### 1.3 Data Cleaning
+```{r}
+demographic_data<-demographic_data %>%
+  mutate(AnyKids = case_when(haveKids==TRUE ~ "Yes", haveKids==FALSE ~ "No"))
+```
+
+# 2. Visualizing with Charts
+
+### 2.1.1 Age -- Original View
+
+```{r}
+p_age_o <- ggplot(data=demographic_data, aes(x = age)) +
+  geom_histogram(bins=10,color="black",fill="skyblue3")+
+  geom_vline(aes(xintercept=mean(age,na.rm=T)),color="red",linetype="dashed",size=1)+
+  xlab("Age") + 
+  ylab("No. of Participants")+
+  xlim(18,60)+
+  ggtitle(label = 'Population Across Age Group',
+          subtitle = '1011 participants are grouped in 10 bins according to their age.')+
+    theme(plot.title = element_text(size=14, face="bold",hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5))
+p_age_o
+```
+
+From the original view, we can only have a general view of the count of different age group, but there are some problems. 
+
+**Clarity**: We don't have a clear view on the age range of each bar, and also, there is no clear count number for each bar, it's really hard for human to distinguish the difference between the first bar and the seventh bar, which bar is higher?
+
+**Aesthetics**: The chart is easy to understand and there is no similar colors in this chart, the labs of x and y axis explain the meaning well. 
+
+So I will try to solve the problems that I mentioned above, regroup age column and shows the count number of each age group.
+
+### 2.1.2 Remake View
+```{r}
+demographic_data <- demographic_data %>%
+  mutate(AgeGroup = cut(age, breaks = c(15,20,25,30,35,40,45,50,55,60)))
+```
+
+```{r}
+p_age_r <- ggplot(data=demographic_data, 
+       aes(x = AgeGroup)) +
+  geom_bar(fill="#468499")+
+  geom_text(stat="count",aes(label=paste0(..count..,", ",round(..count../sum(..count..)*100,1),"%")),vjust=-1, size = 3, colour = "red")+
+  ylim(0,150)+
+  xlab("Age Group") + 
+  ylab("No. of \nParticipants")+
+  ggtitle(label = 'Population Across Age Group',
+          subtitle = '1011 participants are grouped in 9 age groups.') +
+  theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(),
+        panel.background= element_blank(), axis.line= element_line(color= 'grey'))
+p_age_r
+```
+
+### 2.2.1 Age with Household Size -- Original View
+```{r}
+ggplot(data=demographic_data, aes(x = age)) +
+  geom_histogram(color="black",fill="skyblue3", bins=10) + 
+  xlim(18,60)+
+  xlab("Age") + 
+  ylab("No. of Participants")+
+  ggtitle('Age Distribution within Each Household Size')+
+    theme(plot.title = element_text(size=14, face="bold",hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5))+
+  facet_grid(~ householdSize)
+```
+
+**Clarity**: Don't have clear statistic number for each bar, as for the age, the problem is same to the first chart
+
+**Aesthetic**: All the three different size of household have the same color to present, for distinguishing easier, give these three chart different colors. 
+
+### 2.2.2 Age with Household Size -- Original View
+```{r}
+household <- demographic_data$householdSize
+household_c <- as.character(household)
+demographic_data <-  mutate(demographic_data,household = household_c)
+ggplot(data=demographic_data, aes(x = AgeGroup, fill = household)) +
+  geom_bar() + 
+  geom_text(stat="count",aes(label=paste0(..count..,",", 
+                                          round(..count../sum(..count..)*100,1),"%")),vjust=-1, size = 2)+
+  xlab("Age Group") + 
+  ylab("No. of \nParticipants")+
+  ylim(0,60)+
+  ggtitle('Age Distribution within Each Household Size')+
+    theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(),
+        panel.background= element_blank(), axis.line= element_line(color= 'grey'))+
+  facet_grid(household~.)
+```
+
+
+### 2.3.2 Influence of Education Level, Kids, Interest Group on Joviality -- Original View
+
+```{r}
+ggplot(data=demographic_data) + 
+  geom_bar(aes(educationLevel, joviality,fill=haveKids), 
+           color="black", position = "dodge", stat = "summary", fun = "median")+
+  
+  geom_hline(yintercept=0.8, linetype="dashed", color = "red")+
+  xlab("Education Level") + 
+  ylab("Joviality") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    coord_flip()+
+  ggtitle(label = 'Education Level, Kids, Interest Group Affects Joviality?',
+          subtitle = 'The participants are grouped according to education level, if they have kids and which interest group they joined.')+
+  theme(plot.title = element_text(size=14, face="bold",hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5))+
+  facet_wrap(haveKids~interestGroup)
+```
+
+**Clarity**: This chart formed by 20 facets, the designer want to see three different features' influence on joviality, but when I want to compare the kid influence on the same education level and same interest group, I need to find another chart which is not near the chart I want to compare.  
+
+**Clarity**: The designer split the chart into too small pieces, it looks not very tidy.
+
+### 2.3.2 Influence of Education Level, Kids, Interest Group on Joviality -- Remake View
+
+```{r}
+demographic_data$educationLevel <- factor(demographic_data$educationLevel, levels = c("Low", "HighSchoolOrCollege", "Bachelors", "Graduate"))
+ggplot(data=demographic_data) + 
+  geom_bar(aes(educationLevel,joviality,fill=haveKids), 
+           color="black", position = "dodge", stat = "summary", fun = "mean")+
+  geom_hline(yintercept=0.5, linetype="dashed", color = "red")+
+  xlab("Education Level") + 
+  ylab("Joviality") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  ggtitle(label = 'Education Level, Kids, Interest Group Affects Joviality?',
+          subtitle = 'The participants are grouped according to education level, if they have kids and which interest group they joined.')+
+  theme(plot.title = element_text(size=14, face="bold",hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5))+
+  facet_wrap(~interestGroup, ncol = 5)
+```
+
+
