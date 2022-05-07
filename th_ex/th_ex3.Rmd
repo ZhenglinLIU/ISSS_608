@@ -1,0 +1,48 @@
+---
+title: "Take-home Exercise 3"
+description: |
+  A new article created using the Distill format.
+author:
+  - name: LIU Zhenglin 
+    url: https://www.linkedin.com/in/zhenglin-liu-a86aa5219/
+    affiliation: SMU SCIS
+    affiliation_url: https://scis.smu.edu.sg/
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      eval = TRUE)
+```
+
+# Import packages and data
+```{r}
+packages = c('tidyverse','skimr','ggrepel','patchwork')
+
+for(p in packages){
+  if(!require(p, character.only =T)){
+    install.packages(p)
+    }
+  library(p, character.only =T)
+}
+```
+
+
+
+```{r}
+employer <- read_csv("data/Employers.csv")
+head(employer)
+```
+
+
+
+```{r}
+job <- read_csv("data/Jobs.csv")
+typeof(unlist(job$daysToWork))
+```
+
+```{r}
+ggplot(data = job, aes(job$hourlyRate))
+```
+

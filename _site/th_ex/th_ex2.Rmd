@@ -21,7 +21,7 @@ Before remake the plots in terms of clarity and aesthetics, I need to copy all t
 
 ### 1.1 Importing Relevant Package
 ```{r}
-packages = c('tidyverse','skimr','ggrepel', "patchwork")
+packages = c('tidyverse','skimr','ggrepel', 'patchwork')
 
 for(p in packages){
   if(!require(p, character.only =T)){

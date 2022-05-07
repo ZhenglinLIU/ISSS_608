@@ -1,0 +1,54 @@
+---
+title: "Hands-On Exercise 4"
+description: |
+  Lesson 4: Fundamantals of Visual Analytics. 
+author:
+  - name: LIU Zhenglin 
+    url: https://www.linkedin.com/in/zhenglin-liu-a86aa5219/
+    affiliation: SMU SCIS
+    affiliation_url: https://scis.smu.edu.sg/
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      eval = TRUE,
+                      message = FALSE,
+                      warning = FALSE,
+                      fig.retina = 3)
+```
+
+# Getting Started
+## Setting up R packages
+
+To start with [ggstatsplot](https://indrajeetpatil.github.io/ggstatsplot/) and [tidyverse](https://www.tidyverse.org/) packages will be launched using library().
+
+```{r}
+packages = c('ggstatsplot', 'tidyverse')
+
+for(p in packages){
+  if(!require(p, character.only =T)){
+    install.packages(p)
+    }
+  library(p, character.only =T)
+}
+```
+
+## Importing Data
+
+```{r}
+exam <- read_csv("data/Exam_data.csv")
+```
+
+## Working with ggstatsplot
+### ANOVA test
+
+```{r, fig.width=6, fig.height=6}
+ggbetweenstats(
+  data = exam,
+  x = RACE,
+  y = ENGLISH,
+)
+```
+

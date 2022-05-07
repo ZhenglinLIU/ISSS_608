@@ -15,6 +15,16 @@ navbar:
       menu: 
       - text: "DataVis Makeover 1"
         href: ""
+    - text: "Hands-on Exercise"
+      menu: 
+      - text: "Hands-on Exercise 1"
+        href: "in_class_ex/in-class_Ex01.html"
+      - text: "Hands-on Exercise 2"
+        href: "in_class_ex/in-class_Ex02.html"
+      - text: "Hands-on Exercise 3"
+        href: "in_class_ex/in-class_Ex03.html"
+      - text: "Hands-on Exercise 4"
+        href: "in_class_ex/in-class_Ex04.html"
   right:
     - text: "Home"
       href: index.html
