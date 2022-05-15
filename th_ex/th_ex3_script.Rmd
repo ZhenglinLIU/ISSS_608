@@ -1,0 +1,80 @@
+---
+title: "Take-home Exercise 3"
+description: |
+  A new article created using the Distill format.
+author:
+  - name: LIU Zhenglin 
+    url: https://www.linkedin.com/in/zhenglin-liu-a86aa5219/
+    affiliation: SMU SCIS
+    affiliation_url: https://scis.smu.edu.sg/
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      eval = TRUE)
+```
+
+# Import packages and data
+```{r}
+packages = c('tidyverse','skimr','ggrepel','patchwork','lubridate', 'trelliscopejs', 'zoo')
+
+for(p in packages){
+  if(!require(p, character.only =T)){
+    install.packages(p)
+    }
+  library(p, character.only =T)
+}
+```
+
+
+```{r}
+fj_t <- fj <- read_csv("data/Journals/FinancialJournal.csv") %>% 
+  mutate(Year_month = format(as.Date(timestamp), "%Y-%m"))
+fj_t
+```
+
+
+```{r}
+library("readxl")
+```
+
+```{r}
+globalPop <- read_xls("D:/SMU term 3/visual/session 3/data/GlobalPopulation.xls",
+                      sheet="Data") %>%
+  mutate(Year = as.integer(Year))
+ggplot(globalPop, aes(x = Old, y = Young, 
+                      size = Population, 
+                      colour = Country)) +
+  geom_point(alpha = 0.7, 
+             show.legend = FALSE) +
+  scale_colour_manual(values = country_colors) +
+  scale_size(range = c(2, 12)) +
+  labs(title = 'Year: {frame_time}', 
+       x = '% Aged', 
+       y = '% Young') +
+  transition_time(Year) +
+  ease_aes('linear')
+```
+
+
+```{r}
+head(globalPop)
+```
+
+
+```{r}
+ggplot(globalPop, aes(x = Old, y = Young, 
+                      size = Population, 
+                      colour = Country)) +
+  geom_point(alpha = 0.7, 
+             show.legend = FALSE) +
+  scale_colour_manual(values = country_colors) +
+  scale_size(range = c(2, 12)) +
+  labs(title = 'Year: {frame_time}', 
+       x = '% Aged', 
+       y = '% Young') +
+  transition_time(Year) +
+  ease_aes('linear')
+```
