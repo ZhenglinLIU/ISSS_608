@@ -1,7 +1,7 @@
 ---
 title: "Take-home Exercise 3"
 description: |
-  A new article created using the Distill format.
+  In this take-home exercise, I will use visual skills to analyze the second question of VAST Challenge 2022 challenge 3. .
 author:
   - name: LIU Zhenglin 
     url: https://www.linkedin.com/in/zhenglin-liu-a86aa5219/
@@ -23,7 +23,8 @@ knitr::opts_chunk$set(echo = TRUE,
 packages = c('tidyverse','skimr','ggrepel','patchwork',
              'lubridate', 'trelliscopejs', 'zoo',
              'DT', 'tidyr', 'gganimate', 'gifski', 
-             'gapminder', 'ggridges','ggiraph')
+             'gapminder', 'ggridges','ggiraph', 
+             'plotly')
 
 for(p in packages){
   if(!require(p, character.only =T)){
@@ -37,18 +38,22 @@ for(p in packages){
 
 ```{r}
 fj <- read_csv("E:/data/Journals/FinancialJournal.csv")
-fj
-fj %>% 
-  filter(participantId == 0)
+part <- read_csv("E:/data/Attributes/Participants.csv")
 ```
 
 
 We can see there are 4 columns in Financial Journal Dataset:
+
 ● participantId (integer): unique ID corresponding to the participant affected
+
 ● timestamp (datetime): the time when the check-in was logged
+
 ● category (string factor): a string describing the expense category, one of{“Education”, “Food”, “Recreation”, “RentAdjustment”, “Shelter”, “Wage”}
+
 ● amount (double): the amount of the transaction
-1. As for the category column, it contains 6 different kind of financial factors, split this column in to 6 different columns which shows one of these factors can help us to summarize and analyze the financial situation of participants, so this is the first task of our data wrangling. 
+
+1. As for the category column, it contains 6 different kind of financial factors, split this column in to 6 different columns which shows one of these factors can help us to summarize and analyze the financial situation of participants, so this is the first task of our data wrangling.
+
 2. This dataset contains nearly 2 million rows, one participant have 1958 rows to present his or her financial situation, as for analysis, the timestamp is too large, so we need to set a time interval for better analysis, we choose one month as the time interval. 
 
 
@@ -56,91 +61,103 @@ We can see there are 4 columns in Financial Journal Dataset:
 
 ### 1. Time interval
 
+
 ```{r}
+mon_convert <- function(y,m){
+  mon = 12*(y-2022)+m-2
+}
 fj_t <- fj %>% 
-  mutate(yearmonth = format(as.Date(timestamp), "%Y.%m"))
-fj_t
-```
-```{r}
-fj_t %>% 
-  filter(participantId == 0) %>% 
-  filter(category == "Education")
+  mutate(yearmonth = format(as.Date(timestamp), "%Y.%m")) %>% 
+  mutate(y = year(timestamp)) %>% 
+  mutate(m = month(timestamp)) %>% 
+  mutate(Month = mon_convert(y, m))
 ```
 
-### Pivot Original Dataframe 
+
+
+### 2. Pivot Original Dataframe 
 
 Before pivot the financial journal, we need to calculate the monthly financial situation for each participant in each cost or revenue area. For dealing with this problem, we need to combine [**group_by**](https://dplyr.tidyverse.org/reference/group_by.html) and [**summarise**](https://dplyr.tidyverse.org/reference/summarise.html) functions to realize our aim. 
 
 ```{r}
 fj_c <- fj_t %>% 
-  group_by(participantId, category, yearmonth) %>% 
+  group_by(participantId, category, yearmonth, Month) %>% 
   summarise(monthly_financial = sum(amount))
-fj_c
 ```
-
+### 3. Fill NA value with 0
 ```{r}
 fj_p <- fj_c %>% 
   pivot_wider(names_from = category, values_from = monthly_financial)
 fj_p[is.na(fj_p)] = 0
-fj_p
 ```
 
+### 4. Calculate monthly cost, monthly revenue and monthly balance
 
 ```{r}
 fj_p <- fj_p %>% 
   mutate(monthly_cost = Education + Food + Recreation + Shelter) %>% 
   mutate(monthly_revenue = Wage + RentAdjustment) %>% 
   mutate(monthly_balance = monthly_revenue + monthly_cost)
-fj_p
 ```
-```{r}
-part <- read_csv("E:/data/Attributes/Participants.csv")
-```
+
+### 5. Combine Financial journal with Participants
 
 ```{r}
 fj_join <- fj_p %>% 
   left_join(part, by = "participantId")
-fj_join
+DT::datatable(fj_join, class = "compact")
 ```
 
+# Analysis
+
+### 1.How does the financial health of the residents change over the period covered by the dataset? 
+
+1) Monthly balance change over the period
+
 ```{r}
-ggplot(fj_p, aes(x=Wage, y=fj_p$yearmonth, fill = factor(stat(quantile)))) +
+ggplot(fj_p, aes(x=fj_join$monthly_balance, y=fj_p$yearmonth, fill = factor(stat(quantile)))) +
   stat_density_ridges(
     geom = "density_ridges_gradient", calc_ecdf = TRUE,
     quantiles = 4, quantile_lines = TRUE
   ) +
-  scale_fill_viridis_d(name = "Quartiles")
+  scale_fill_viridis_d(name = "Quartiles")+
+  scale_x_continuous(limits=c(-500,20000), breaks = seq(0,20000,2000))+
+  labs(title = "Monthly Balance density distribution change over the period", 
+       x = 'Monthly Balance', 
+       y = "Time Period")
 ```
+
+To solve the first question, I decided to use two kinds of data to measure the participants' financial health, the first is monthly balance, which equals to monthly revenue subtract monthly cost to see whether their revenue can meet their expenditures. 
+
+According to the plot above, we can easily find that during the whole period, in the first month, the financial health of participants is good, only few participants' balance in Mar 2022 lower than 0, which means they can support themselves. 
+
+However, after the first month, participants' financial situation become worse, more people can't afford their lives, and this change is for the whole society, not only the poor, but also the median-income participants, their balance reduce nearly 2000 per month, and this situation lasts for a long time and don't become better until the end of the period. 
+
+
+### 2 & 3 Are there groups that appear to exihibit similar patterns?  How do wages compare to the overall cost of living in Engagement?
+
+1) 
 
 ```{r}
-ggplot(fj_join, aes(x = Wage, y = fj_join$yearmonth, fill = 0.5 - abs(0.5 - stat(ecdf)))) +
-  stat_density_ridges(geom = "density_ridges_gradient", calc_ecdf = TRUE) +
-  scale_fill_viridis_c(name = "Tail probability", direction = -1)
-```
-
-```{r}
-ggplot(fj_join, aes(x = fj_join$monthly_balance, y = fj_join$interestGroup, fill = 0.5 - abs(0.5 - stat(ecdf)))) +
-  stat_density_ridges(geom = "density_ridges_gradient", calc_ecdf = TRUE) +
-  scale_fill_viridis_c(name = "Tail probability", direction = -1) 
-```
-
-```{r monthly cost rate according to education level}
 tooltip <- function(y, ymax, accuracy = .0001) {
   mean <- scales::number(y, accuracy = accuracy)
   sem <- scales::number(ymax - y, accuracy = accuracy)
   paste("Mean cost rate:", mean, "+/-", sem)
 } 
 gg_point <- ggplot(data=fj_join, 
-                   aes(x = fj_join$educationLevel),
+                   aes(x = fj_join$interestGroup),
 ) +
-  stat_summary(aes(y = abs(fj_join$monthly_cost)/fj_join$monthly_revenue, 
+  stat_summary(aes(y = abs(fj_join$monthly_cost)/fj_join$Wage, 
                    tooltip = after_stat(
                      tooltip(y, ymax))),
     fun.data = "mean_se", 
     geom = GeomInteractiveCol,
     fill = "light blue"
   ) +
-  stat_summary(aes(y = abs(fj_join$monthly_cost)/fj_join$monthly_revenue),
+  labs(x = "Interest Group",
+       y = "Living Cost Rate",
+       title = "Cost/Wage Rate in terms of Interest Group")+
+  stat_summary(aes(y = abs(fj_join$monthly_cost)/fj_join$Wage),
     fun.data = mean_se,
     geom = "errorbar", width = 0.2, size = 0.2
   )
@@ -149,5 +166,54 @@ girafe(ggobj = gg_point,
        height_svg = 8*0.618)
 ```
 
+```{r}
+tooltip <- function(y, ymax, accuracy = .0001) {
+  mean <- scales::number(y, accuracy = accuracy)
+  sem <- scales::number(ymax - y, accuracy = accuracy)
+  paste("Mean cost rate:", mean, "+/-", sem)
+} 
+gg_point <- ggplot(data=fj_join, 
+                   aes(x = fj_join$educationLevel),
+) +
+  stat_summary(aes(y = abs(fj_join$monthly_cost)/fj_join$Wage, 
+                   tooltip = after_stat(
+                     tooltip(y, ymax))),
+    fun.data = "mean_se", 
+    geom = GeomInteractiveCol,
+    fill = "light blue"
+  ) +
+  labs(x = "Education Level",
+       y = "Living Cost Rate",
+       title = "Cost/Wage Rate in terms of Education Level")+
+  stat_summary(aes(y = abs(fj_join$monthly_cost)/fj_join$Wage),
+    fun.data = mean_se,
+    geom = "errorbar", width = 0.2, size = 0.2
+  )
+girafe(ggobj = gg_point,
+       width_svg = 8,
+       height_svg = 8*0.618)
+```
 
+As for the cost/revenue rate, we can't see significant differences between different interest group, in other words, participants from different interest groups have similar financial health situation. But when we compare different education level participants, the difference is quite obvious. the lower education level, the higher living cost rate.    
 
+2) 
+
+```{r}
+ggplot(fj_join, aes(x = abs(fj_join$monthly_cost), y = fj_join$monthly_revenue, 
+                      size = Wage, 
+                      colour = educationLevel)) +
+  geom_point(alpha = 0.5, 
+             show.legend = TRUE) +
+  labs(title = 'Month: {frame_time}', 
+       x = 'Monthly Cost', 
+       y = 'Monthly Revenue') +
+  transition_time(as.integer(Month)) +
+  ease_aes('linear')
+```
+
+From the plot we can get some conclusions:
+
+Education level seems have big influence on people's revenue. 
+
+Although the income level difference is quite obvious, but the living cost is not change too much. 
+Except the first month, this city's economic situation is quite stable. 
