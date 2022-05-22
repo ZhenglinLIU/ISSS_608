@@ -32,6 +32,40 @@ for (p in packages){
   library(p,character.only = T)
 }
 ```
+# Importing Data
+
+### Read All Activity Logs Files In A list
+
+```{r, echo=TRUE, eval=FALSE}
+files <- list.files('E:/data/Activity Logs/')
+```
+
+### Find ID of Participants According to Joviality
+
+```{r, echo=TRUE, eval=FALSE}
+part <- read_csv("E:/data/Attributes/Participants.csv")
+p1 <- part %>% 
+  filter(joviality == max(part$joviality))
+p2 <- part %>% 
+  filter(joviality == min(part$joviality))
+p1
+p2
+```
+
+### Extract Data From Activity Logs of Participants
+
+```{r, eval=FALSE, echo=FALSE}
+parts<- c(p1$participantId, p2$participantId)
+df <- data.frame()
+for (i in files) {
+  psl <- read_csv(paste0('E:/data/Activity Logs/', i)) %>%
+    filter(participantId %in% parts)
+  df <- rbind(df, psl)
+}
+write_rds(df, "D:/ZhenglinLIU/ISSS_608/th_ex/data/participant_logs.rds")
+```
+
+### Importing Data from RDS file
 
 ```{r}
 logs <- read_rds("data/participant_logs.rds")
@@ -39,6 +73,188 @@ logs_1 <-  logs %>%
   filter(participantId == 113)
 logs_2 <-  logs %>% 
   filter(participantId == 758)
-logs_1
 ```
 
+The participant whose participantId is 113 have the highest joviality
+The participant whose participantId is 758 have the lowest joviality
+
+
+# Data Preparation
+
+
+```{r}
+log_t <- logs %>% 
+  mutate(date = date(timestamp)) %>% 
+  mutate(month = month(timestamp)) %>% 
+  mutate(week = week(timestamp)) %>% 
+  mutate(weekday = weekdays(timestamp)) %>% 
+  mutate(hour = hour(timestamp)) %>% 
+  mutate(min = minute(timestamp)) %>% 
+  mutate(time_line = hour*60+min) %>% 
+  mutate(day = as.integer(date-min(date))+1)
+```
+
+
+### Change the dataframe into the structure can be used in Visielse
+
+```{r}
+hunger113_w <- log_t %>% 
+  filter(participantId == 113) %>% 
+  filter(weekday %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")) %>% 
+  select(participantId, hungerStatus, day, time_line) %>% 
+  group_by(hungerStatus,day) %>%
+  summarise(value = min(time_line)) %>% 
+  pivot_wider(day,names_from = hungerStatus,values_from =value)
+
+hunger113_r <- log_t %>% 
+  filter(participantId == 113) %>% 
+  filter(weekday %in% c("Saturday", "Sunday")) %>% 
+  select(participantId, hungerStatus, day, time_line) %>% 
+  group_by(hungerStatus,day) %>%
+  summarise(value = min(time_line)) %>% 
+  pivot_wider(day,names_from = hungerStatus,values_from =value)
+
+hunger758_w <- log_t %>% 
+  filter(participantId == 758) %>% 
+  filter(weekday %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")) %>% 
+  select(participantId, hungerStatus, day, time_line) %>% 
+  group_by(hungerStatus,day) %>%
+  summarise(value = min(time_line)) %>% 
+  pivot_wider(day,names_from = hungerStatus,values_from =value)
+
+hunger758_r <- log_t %>% 
+  filter(participantId == 758) %>% 
+  filter(weekday %in% c("Saturday", "Sunday")) %>% 
+  select(participantId, hungerStatus, day, time_line) %>% 
+  group_by(hungerStatus,day) %>%
+  summarise(value = min(time_line)) %>% 
+  pivot_wider(day,names_from = hungerStatus,values_from =value)
+```
+
+```{r}
+sleep113_w <- log_t %>% 
+  filter(participantId == 113) %>% 
+  filter(weekday %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")) %>% 
+  select(participantId, sleepStatus, day, time_line) %>% 
+  group_by(sleepStatus,day) %>%
+  summarise(value = min(time_line)) %>% 
+  pivot_wider(day,names_from = sleepStatus,values_from =value)
+
+sleep113_r <- log_t %>% 
+  filter(participantId == 113) %>% 
+  filter(weekday %in% c("Saturday", "Sunday")) %>% 
+  select(participantId, sleepStatus, day, time_line) %>% 
+  group_by(sleepStatus,day) %>%
+  summarise(value = min(time_line)) %>% 
+  pivot_wider(day,names_from = sleepStatus,values_from =value)
+
+sleep758_w <- log_t %>% 
+  filter(participantId == 758) %>% 
+  filter(weekday %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")) %>% 
+  select(participantId, sleepStatus, day, time_line) %>% 
+  group_by(sleepStatus,day) %>%
+  summarise(value = min(time_line)) %>% 
+  pivot_wider(day,names_from = sleepStatus,values_from =value)
+
+sleep758_r <- log_t %>% 
+  filter(participantId == 758) %>% 
+  filter(weekday %in% c("Saturday", "Sunday")) %>% 
+  select(participantId, sleepStatus, day, time_line) %>% 
+  group_by(sleepStatus,day) %>%
+  summarise(value = min(time_line)) %>% 
+  pivot_wider(day,names_from = sleepStatus,values_from =value)
+
+```
+
+
+```{r}
+mode113_w <- log_t %>% 
+  filter(participantId == 113) %>% 
+  filter(weekday %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")) %>% 
+  select(participantId, currentMode, day, time_line) %>% 
+  group_by(currentMode,day) %>%
+  summarise(value = min(time_line)) %>% 
+  pivot_wider(day,names_from = currentMode,values_from =value)
+
+mode113_r <- log_t %>% 
+  filter(participantId == 113) %>% 
+  filter(weekday %in% c("Saturday", "Sunday")) %>% 
+  select(participantId, currentMode, day, time_line) %>% 
+  group_by(currentMode,day) %>%
+  summarise(value = min(time_line)) %>% 
+  pivot_wider(day,names_from = currentMode,values_from =value)
+
+mode758_w <- log_t %>% 
+  filter(participantId == 758) %>% 
+  filter(weekday %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")) %>% 
+  select(participantId, currentMode, day, time_line) %>% 
+  group_by(currentMode,day) %>%
+  summarise(value = min(time_line)) %>% 
+  pivot_wider(day,names_from = currentMode,values_from =value)
+
+mode758_r <- log_t %>% 
+  filter(participantId == 758) %>% 
+  filter(weekday %in% c("Saturday", "Sunday")) %>% 
+  select(participantId, currentMode, day, time_line) %>% 
+  group_by(currentMode,day) %>%
+  summarise(value = min(time_line)) %>% 
+  pivot_wider(day,names_from = currentMode,values_from =value)
+```
+
+
+Participant 113 weekdays
+
+```{r}
+w_113 <- mode113_w %>% 
+  merge(hunger113_w, by = "day") %>% 
+  merge(sleep113_w, by = "day")
+p113_w <- visielse(w_113,doplot = F)
+plot(p113_w, 
+     vp0w = 0.7, 
+     unit.tps = "min", 
+     scal.unit.tps = 30, 
+     main = "Participant 113 weekdays")
+```
+
+Participant 113 weekend
+
+```{r}
+r_113 <- mode113_r %>% 
+  merge(hunger113_r, by = "day") %>% 
+  merge(sleep113_r, by = "day")
+p113_r <- visielse(r_113,doplot = F)
+plot(p113_r, 
+     vp0w = 0.7, 
+     unit.tps = "min", 
+     scal.unit.tps = 30, 
+     main = "Participant 113 weekend")
+```
+
+
+Participant 758 weekdays
+
+```{r}
+w_758 <- mode758_w %>% 
+  merge(hunger113_w, by = "day") %>% 
+  merge(sleep113_w, by = "day")
+p758_w <- visielse(w_758,doplot = F)
+plot(p758_w, 
+     vp0w = 0.7, 
+     unit.tps = "min", 
+     scal.unit.tps = 30, 
+     main = "Participant 758 weekdays")
+```
+
+Participant 758 weekend
+
+```{r}
+r_758 <- mode758_r %>% 
+  merge(hunger113_r, by = "day") %>% 
+  merge(sleep113_r, by = "day")
+p758_r <- visielse(r_758,doplot = F)
+plot(p758_r, 
+     vp0w = 0.7, 
+     unit.tps = "min", 
+     scal.unit.tps = 30, 
+     main = "Participant 758 weekend")
+```
