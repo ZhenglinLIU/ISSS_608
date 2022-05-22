@@ -17,44 +17,28 @@ knitr::opts_chunk$set(echo = TRUE,
 ```
 
 
-Getting started
+# Getting started
 
 ```{r}
-packages = c('ggstatsplot', 'ggside', 'knitr',
-             'tidyverse', 'broom', 'ggdist',
-             'ungeviz', 'gganimate', 'sf', 'tmap')
+packages = c('scales', 'viridis', 
+             'lubridate', 'ggthemes', 
+             'gridExtra', 'tidyverse', 
+             'readxl', 'knitr',
+             'data.table', 'ViSiElse')
 for (p in packages){
   if(!require(p, character.only = T)){
     install.packages(p)
   }
+  library(p,character.only = T)
 }
 ```
 
 ```{r}
-psl_72 <- read_csv("E:/data/Activity Logs/ParticipantStatusLogs72.csv")
-```
-
-
-```{r}
-head(psl_72)
-```
-
-```{r}
-building <- read_csv("E:/data/Attributes/Buildings.csv")
-glimpse(building)
-```
-
-```{r}
-employ <- read_csv("E:/data/Attributes/Employers.csv")
-glimpse(employ)
-```
-
-```{r}
-
-```
-
-```{r}
-psl_72_b <- merge(psl_72, building, by.x = "currentLocation", by.y = "location")
-head(psl_72_b)
+logs <- read_rds("data/participant_logs.rds")
+logs_1 <-  logs %>% 
+  filter(participantId == 113)
+logs_2 <-  logs %>% 
+  filter(participantId == 758)
+logs_1
 ```
 

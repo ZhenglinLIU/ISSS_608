@@ -45,24 +45,6 @@ restaurants <- read_sf("data/Attributes/Restaurants.csv",
 ```
 
 
-
-
-```{r}
-schools <- read_sf("data/Attributes/Schools.csv", 
-                   options = "GEOM_POSSIBLE_NAMES=location")
-buildings <- read_sf("data/Attributes/Buildings.csv", 
-                   options = "GEOM_POSSIBLE_NAMES=location")
-pubs <- read_sf("data/Attributes/Pubs.csv", 
-                   options = "GEOM_POSSIBLE_NAMES=location")
-apartments <- read_sf("data/Attributes/Apartments.csv", 
-                   options = "GEOM_POSSIBLE_NAMES=location")
-employers <- read_sf("data/Attributes/Employers.csv", 
-                   options = "GEOM_POSSIBLE_NAMES=location")
-restaurants <- read_sf("data/Attributes/Restaurants.csv", 
-                   options = "GEOM_POSSIBLE_NAMES=location")
-```
-
-
 ```{r}
 plot(schools)
 ```
