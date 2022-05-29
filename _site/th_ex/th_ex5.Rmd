@@ -1,0 +1,61 @@
+---
+title: "Take-Home Exercise 5"
+description: |
+  A new article created using the Distill format.
+author:
+  - name: LIU Zhenglin
+    url: https://example.com/norajones
+    affiliation: SMU SCIS
+    affiliation_url: https://example.com/spacelysprokets
+date: "`r Sys.Date()`"
+output: distill::distill_article
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      eval = TRUE)
+```
+
+
+```{r}
+packages = c('tidyverse', 'sf', 'tmap', 'lubridate', 'clock', 
+             'sftime', 'rmarkdown')
+for (p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+}
+```
+
+
+```{r}
+schools <- read_sf("data/Attributes/Schools.csv", 
+                   options = "GEOM_POSSIBLE_NAMES=location")
+buildings <- read_sf("data/Attributes/Buildings.csv", 
+                   options = "GEOM_POSSIBLE_NAMES=location")
+pubs <- read_sf("data/Attributes/Pubs.csv", 
+                   options = "GEOM_POSSIBLE_NAMES=location")
+apartments <- read_sf("data/Attributes/Apartments.csv", 
+                   options = "GEOM_POSSIBLE_NAMES=location")
+employers <- read_sf("data/Attributes/Employers.csv", 
+                   options = "GEOM_POSSIBLE_NAMES=location")
+restaurants <- read_sf("data/Attributes/Restaurants.csv", 
+                   options = "GEOM_POSSIBLE_NAMES=location")
+```
+
+
+```{r}
+tmap_mode("plot")
+tm_shape(buildings)+
+tm_polygons(col = "grey60",
+           size = 1,
+           border.col = "black",
+           border.lwd = 1)
+```
+
+
+```{r}
+
+```
+
