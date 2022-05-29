@@ -1,7 +1,7 @@
 ---
 title: "Take-Home Exercise 5"
 description: |
-  A new article created using the Distill format.
+  Visualising and Analysing Geographic and Movement Data.
 author:
   - name: LIU Zhenglin
     url: https://example.com/norajones
@@ -17,6 +17,7 @@ knitr::opts_chunk$set(echo = TRUE,
                       eval = TRUE)
 ```
 
+# Importing Packages
 
 ```{r}
 packages = c('tidyverse', 'sf', 'tmap', 'lubridate', 'clock', 
@@ -28,6 +29,11 @@ for (p in packages){
 }
 ```
 
+# 1. Q1 
+Assuming the volunteers are representative of the city’s population, characterize the distinct areas of the city that you identify.
+
+### 1.1 Importing Data
+For find the social areas of the city of engagement, Ohio USA, we need to plot a map for all buildings and plot the dots which represent different building types, there are 5 types of buildings, school, apartment, employer, pub and restaurant, we choose pub and restaurant as social area and give them bigger size and change the other type buildings' alpha to a small value to make the pub and restaurant obvious. 
 
 ```{r}
 schools <- read_sf("data/Attributes/Schools.csv", 
@@ -46,16 +52,139 @@ restaurants <- read_sf("data/Attributes/Restaurants.csv",
 
 
 ```{r}
+types <- c('Pub', 'Restaurant','School', 'Apartment', 'Employer')
+cols <- c('red', 'green', "skyblue", 'orange', 'purple')
+
 tmap_mode("plot")
+
 tm_shape(buildings)+
 tm_polygons(col = "grey60",
            size = 1,
            border.col = "black",
-           border.lwd = 1)
+           border.lwd = 1) +
+tm_shape(pubs) +
+tm_dots(col = "red", size = 0.2) +
+tm_shape(restaurants) +
+tm_dots(col = "green", size = 0.2) +
+tm_shape(schools) +
+tm_dots(col = "skyblue", size = 0.1, alpha = 0.2) +
+tm_shape(apartments) +
+tm_dots(col = "orange", size = 0.1, alpha = 0.2) +
+tm_shape(employers) +
+tm_dots(col = "purple", size = 0.1, alpha = 0.2) +
+tm_add_legend(title = 'Building Types',
+                type = 'symbol',
+                labels = types,
+                col = cols) 
 ```
 
+According to the picture above, we can see that restaurants are more common than pubs, the citizen can found restaurants in every area except the south area, while they can only found pubs in north-west area, middle area and south-east corner. 
+
+# 2. Q2
+Where are the busiest areas in Engagement? Are there traffic bottlenecks that should be addressed?
+
+For solving this question, we need to use participants' logs to see the current location of them, and see the most common locations, which means the busiest area in this city.
 
 ```{r}
-
+hex <- st_make_grid(buildings,
+                    cellsize = 100,
+                    square = FALSE) %>% 
+  st_sf() %>% 
+  rowid_to_column('hex_id')
+plot(hex)
 ```
+### Importing Data
+```{r,echo=TRUE, eval=FALSE}
+logs <- read_sf("E:/data/Activity Logs/ParticipantStatusLogs1.csv",
+                options = "GEOM_POSSIBLE_NAMES=currentLocation")
+```
+
+### Data Wrangling
+Since we need to solve the busiest area in this city and see the traffic bottlenecks, so I tried to divided the data into weekday and weekend data, and only choose the mode equals to transport to meet the traffic requirement.
+
+```{r,echo=TRUE, eval=FALSE}
+logs_selected_w <- logs %>% 
+  mutate(Timestamp = clock::date_time_parse(timestamp,
+                                     zone = "",
+                                     format = "%Y-%m-%dT%H:%M:%S")) %>% 
+  mutate(day = clock::get_day(Timestamp)) %>% 
+  mutate(weekday = weekdays(Timestamp)) %>% 
+  filter(currentMode == "Transport") %>% 
+  filter(weekday == "Monday"|weekday == "Tuesday"|weekday == "Wednesday"|weekday == "Thursday"|weekday == "Friday")
+
+logs_selected_r <- logs %>% 
+  mutate(Timestamp = clock::date_time_parse(timestamp,
+                                     zone = "",
+                                     format = "%Y-%m-%dT%H:%M:%S")) %>% 
+  mutate(day = clock::get_day(Timestamp)) %>% 
+  mutate(weekday = weekdays(Timestamp)) %>% 
+  filter(currentMode == "Transport") %>% 
+  filter(weekday == "Saturday"|weekday == "Sunday")
+```
+
+
+```{r,echo=TRUE, eval=FALSE}
+write_rds(logs_selected_w,"D:/ZhenglinLIU/ISSS_608/th_ex/data/participantlog_1w.rds")
+write_rds(logs_selected_r,"D:/ZhenglinLIU/ISSS_608/th_ex/data/participantlog_1r.rds")
+```
+
+```{r}
+logs_selected_1w <- read_rds("data/participantlog_1w.rds")
+logs_selected_1r <- read_rds("data/participantlog_1r.rds")
+```
+
+```{r}
+points_in_hex_1w <- st_join(logs_selected_1w, 
+                            hex, 
+                            join= st_within) %>%
+  st_set_geometry(NULL) %>%
+  count(name = 'pointCount', hex_id)
+
+points_in_hex_1r <- st_join(logs_selected_1r, 
+                            hex, 
+                            join= st_within) %>%
+  st_set_geometry(NULL) %>%
+  count(name = 'pointCount', hex_id)
+```
+
+```{r}
+hex_combined_1w <- hex %>%
+  left_join(points_in_hex_1w, 
+            by = 'hex_id') %>%
+  replace(is.na(.), 0)
+
+hex_combined_1r <- hex %>%
+  left_join(points_in_hex_1r, 
+            by = 'hex_id') %>%
+  replace(is.na(.), 0)
+```
+
+```{r}
+tm_w <- tm_shape(hex_combined_1w %>%
+           filter(pointCount > 0))+
+  tm_fill("pointCount",
+          n = 10,
+          style = "quantile") +
+  tm_borders(alpha = 0.1) +
+  tm_layout(main.title = 'Weekday Traffic Tmap',
+            frame = FALSE) +
+  tm_compass(size = 1,
+             position = c('right', 'top'))
+
+tm_r <- tm_shape(hex_combined_1r %>%
+           filter(pointCount > 0))+
+  tm_fill("pointCount",
+          n = 10,
+          style = "quantile") +
+  tm_borders(alpha = 0.1) +
+  tm_layout(main.title = 'Weekend Traffic Tmap',
+            frame = FALSE) +
+  tm_compass(size = 1,
+             position = c('right', 'top'))
+
+tmap_arrange(tm_w, tm_r)
+```
+
+According to the chart above, we can draw the conclusion is that, no matter weekdays or weekends, there are still some main roads area very busy, most of them are in the middle area. 
+Compared with weekdays, the number of travel is less, so the traffic situation is slightly better than weekdays. 
 
