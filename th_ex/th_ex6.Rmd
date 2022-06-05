@@ -1,0 +1,113 @@
+---
+title: "Take-Home Exercise 7"
+description: |
+  With reference to bullet point 2 of Challenge 1 of VAST Challenge 2022, I will reveal the patterns of community interactions of the city of Engagement, Ohio USA by using social network analysis approach.
+author:
+  - name: LIU Zhenglin
+    url: https://example.com/norajones
+    affiliation: SMU SCIS
+    affiliation_url: https://example.com/spacelysprokets
+date: "`r Sys.Date()`"
+output: distill::distill_article
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      eval = TRUE)
+```
+
+# Importing packages
+
+```{r}
+packages = c('igraph', 'tidygraph', 
+             'ggraph', 'visNetwork', 
+             'lubridate', 'clock',
+             'tidyverse', 'graphlayouts',
+             'DT')
+for(p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+
+# Importing Data
+
+```{r, echo=TRUE, eval=FALSE}
+social <- read_csv("E:/data/Journals/SocialNetwork.csv")
+part <- read_csv("E:/data/Attributes/Participants.csv")
+job <- read_csv("E:/data/Attributes/Jobs.csv")
+log <- read_csv("E:/data/Activity Logs/ParticipantStatusLogs1.csv")
+```
+
+# Data Wrangling
+
+## Choose a time period to analyse social network in Ohio
+
+The SocialNetwork file contains a very long time period social network record of participants, there are nearly 7.5 million records, the dataset is to large for analysis, and people's social activity has patterns, so in this take home exercise, I'll only analyse the activities in two weeks, one choose from the beginning of this dataset, one at the end. 
+
+```{r, echo = TRUE, eval = FALSE}
+social <- social %>% 
+  mutate(Weekday = wday(timestamp,
+                        label = TRUE,
+                        abbr = FALSE)) %>% 
+  mutate(Month = month(timestamp)) %>% 
+  mutate(Week = week(timestamp)) %>% 
+  mutate(Year = year(timestamp))
+```
+
+as we can see the first week is week 9, but the first date is a Tuesday, so I choose 2022, week 10 as a sample and choose 2023, week 20 as the sample in the end.
+
+```{r, echo=TRUE, eval=FALSE}
+social_1 <- social %>% 
+  filter(Year == 2022) %>% 
+  filter(Week == 10)
+social_2 <- social %>% 
+  filter(Year == 2023) %>% 
+  filter(Week == 20)
+write_rds(social_1, "E:/data/social_1.rds")
+write_rds(social_2, "E:/data/social_2.rds")
+```
+
+## Find the job id for each participant
+Compared with other attributes of participants, job maybe the factor which influence the social network of a people most, for example, if a participant is a salesman, he or she need to meet different people to sale their product, while, if a participant is 
+
+```{r, echo=TRUE, eval=FALSE}
+log_attribute <- log %>% 
+  filter(timestamp == log$timestamp[1])
+glimpse(log_attribute)
+write_rds(log_attribute, "E:/data/log_attribute.rds")
+```
+
+## Importing rds files to reduce the size of raw data
+
+```{r}
+social_s <-  read_rds("E:/data/social_1.rds")
+social_e <-  read_rds("E:/data/social_2.rds")
+log_att <- read_rds("E:/data/log_attribute.rds")
+```
+
+## Change the orginal format into edge dataframe format
+
+```{r}
+social_s_edge_work_aggregated <- social_s %>% 
+  filter(Weekday %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")) %>% 
+  group_by(participantIdFrom, participantIdTo) %>% 
+  summarise(Weight = n()) %>% 
+  filter(participantIdFrom != participantIdTo) %>% 
+  filter(Weight > 1) %>% 
+  ungroup
+```
+
+
+```{r}
+social_s_edge_rest_aggregated <- social_s %>% 
+  filter(Weekday %in% c("Saturday", "Sunday")) %>% 
+  group_by(participantIdFrom, participantIdTo) %>% 
+  summarise(Weight = n()) %>% 
+  filter(participantIdFrom != participantIdTo) %>% 
+  filter(Weight > 1) %>% 
+  ungroup
+```
