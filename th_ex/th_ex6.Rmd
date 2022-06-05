@@ -24,7 +24,7 @@ packages = c('igraph', 'tidygraph',
              'ggraph', 'visNetwork', 
              'lubridate', 'clock',
              'tidyverse', 'graphlayouts',
-             'DT')
+             'DT', "patchwork")
 for(p in packages){
   if(!require(p, character.only = T)){
     install.packages(p)
@@ -38,7 +38,6 @@ for(p in packages){
 ```{r, echo=TRUE, eval=FALSE}
 social <- read_csv("E:/data/Journals/SocialNetwork.csv")
 part <- read_csv("E:/data/Attributes/Participants.csv")
-job <- read_csv("E:/data/Attributes/Jobs.csv")
 log <- read_csv("E:/data/Activity Logs/ParticipantStatusLogs1.csv")
 ```
 
@@ -58,7 +57,7 @@ social <- social %>%
   mutate(Year = year(timestamp))
 ```
 
-as we can see the first week is week 9, but the first date is a Tuesday, so I choose 2022, week 10 as a sample and choose 2023, week 20 as the sample in the end.
+As we can see the first week is week 9, but the first date is a Tuesday, so I choose 2022, week 10 as a sample and choose 2023, week 20 as the sample in the end.
 
 ```{r, echo=TRUE, eval=FALSE}
 social_1 <- social %>% 
@@ -71,8 +70,7 @@ write_rds(social_1, "E:/data/social_1.rds")
 write_rds(social_2, "E:/data/social_2.rds")
 ```
 
-## Find the job id for each participant
-Compared with other attributes of participants, job maybe the factor which influence the social network of a people most, for example, if a participant is a salesman, he or she need to meet different people to sale their product, while, if a participant is 
+## Find more attributes for each participant
 
 ```{r, echo=TRUE, eval=FALSE}
 log_attribute <- log %>% 
@@ -87,7 +85,25 @@ write_rds(log_attribute, "E:/data/log_attribute.rds")
 social_s <-  read_rds("E:/data/social_1.rds")
 social_e <-  read_rds("E:/data/social_2.rds")
 log_att <- read_rds("E:/data/log_attribute.rds")
+job <- read_csv("E:/data/Attributes/Jobs.csv")
+part <- read_csv("data/Attributes/Participants.csv")
+employer <- read_csv("data/Attributes/Employers.csv")
 ```
+
+## Divide age group and join job id by participant id and use the new data frame as node. 
+
+```{r}
+log_att <- log_att %>% 
+  select(participantId, jobId)
+part <- part %>%
+  mutate(age_group = cut(age, breaks = c(17,25,35,45,55,60))) %>% 
+  left_join(log_att, by = "participantId")
+part <- part %>% 
+  left_join(job, by = "jobId")
+part <- part %>% 
+  left_join(employer, by = "employerId")
+```
+
 
 ## Change the orginal format into edge dataframe format
 
@@ -99,10 +115,7 @@ social_s_edge_work_aggregated <- social_s %>%
   filter(participantIdFrom != participantIdTo) %>% 
   filter(Weight > 1) %>% 
   ungroup
-```
 
-
-```{r}
 social_s_edge_rest_aggregated <- social_s %>% 
   filter(Weekday %in% c("Saturday", "Sunday")) %>% 
   group_by(participantIdFrom, participantIdTo) %>% 
@@ -110,4 +123,115 @@ social_s_edge_rest_aggregated <- social_s %>%
   filter(participantIdFrom != participantIdTo) %>% 
   filter(Weight > 1) %>% 
   ungroup
+
+social_e_edge_work_aggregated <- social_e %>% 
+  filter(Weekday %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")) %>% 
+  group_by(participantIdFrom, participantIdTo) %>% 
+  summarise(Weight = n()) %>% 
+  filter(participantIdFrom != participantIdTo) %>% 
+  filter(Weight > 1) %>% 
+  ungroup
+
+social_e_edge_rest_aggregated <- social_e %>% 
+  filter(Weekday %in% c("Saturday", "Sunday")) %>% 
+  group_by(participantIdFrom, participantIdTo) %>% 
+  summarise(Weight = n()) %>% 
+  filter(participantIdFrom != participantIdTo) %>% 
+  filter(Weight > 1) %>% 
+  ungroup
 ```
+
+
+```{r}
+part_s_w <- part %>% 
+  filter(participantId %in% c(social_s_edge_work_aggregated$participantIdFrom, social_s_edge_work_aggregated$participantIdTo))
+social_graph_s_w <- graph_from_data_frame(social_s_edge_work_aggregated, 
+                                          vertices = part_s_w) %>% 
+  as_tbl_graph() %>% 
+  activate(edges) %>%
+  arrange(desc(Weight))
+social_graph_s_w
+
+part_s_r <- part %>% 
+  filter(participantId %in% c(social_s_edge_rest_aggregated$participantIdFrom, social_s_edge_rest_aggregated$participantIdTo))
+social_graph_s_r <- graph_from_data_frame(social_s_edge_rest_aggregated, 
+                                          vertices = part_s_r) %>% 
+  as_tbl_graph() %>% 
+  activate(edges) %>%
+  arrange(desc(Weight))
+social_graph_s_r
+
+part_e_w <- part %>% 
+  filter(participantId %in% c(social_e_edge_work_aggregated$participantIdFrom, social_e_edge_work_aggregated$participantIdTo))
+social_graph_e_w <- graph_from_data_frame(social_e_edge_work_aggregated, 
+                                          vertices = part_e_w) %>% 
+  as_tbl_graph() %>% 
+  activate(edges) %>%
+  arrange(desc(Weight))
+social_graph_s_w
+
+part_e_r <- part %>% 
+  filter(participantId %in% c(social_e_edge_rest_aggregated$participantIdFrom, social_e_edge_rest_aggregated$participantIdTo))
+social_graph_e_r <- graph_from_data_frame(social_e_edge_rest_aggregated, 
+                                          vertices = part_e_r) %>% 
+  as_tbl_graph() %>% 
+  activate(edges) %>%
+  arrange(desc(Weight))
+social_graph_s_r
+```
+# Social Network Plot
+
+```{r}
+g_s_w <- ggraph(social_graph_s_w,layout = 'kk') +
+  geom_edge_link(aes(width=Weight),
+                 alpha=0.2) +
+  scale_edge_width(range = c(0.1, 0.5))+
+  geom_node_point(aes(colour = educationLevel), 
+                  size = 1)+
+  geom_node_text(aes(label = name),size=1.5, repel=TRUE)+
+  labs(subtitle = "Working days social network at begining")
+
+g_s_r <- ggraph(social_graph_s_r,layout = 'kk') +
+  geom_edge_link(aes(width=Weight),
+                 alpha=0.2) +
+  scale_edge_width(range = c(0.1, 0.5))+
+  geom_node_point(aes(colour = educationLevel), 
+                  size = 1)+
+  geom_node_text(aes(label = name),size=1.5, repel=TRUE)+
+  labs(subtitle = "Weekend social network at begining")
+
+g_e_w <- ggraph(social_graph_e_w,layout = 'kk') +
+  geom_edge_link(aes(width=Weight),
+                 alpha=0.2) +
+  scale_edge_width(range = c(0.1, 0.5))+
+  geom_node_point(aes(colour = educationLevel), 
+                  size = 1)+
+  geom_node_text(aes(label = name),size=1.5, repel=TRUE)+
+  labs(subtitle = "Working days social network at the end")
+
+g_e_r <- ggraph(social_graph_e_r,layout = 'kk') +
+  geom_edge_link(aes(width=Weight),
+                 alpha=0.2) +
+  scale_edge_width(range = c(0.1, 0.5))+
+  geom_node_point(aes(colour = educationLevel), 
+                  size = 1)+
+  geom_node_text(aes(label = name),size=1.5, repel=TRUE)+
+  labs(subtitle = "Weekends social network at the end")
+
+
+g_s_w
+g_s_r
+g_e_w
+g_e_r
+```
+
+# Conclusion
+
+From the the charts above, we can get some conclusions:
+
+1. According to time change, the pattern of people's social network have a significant change, we cannot say that people always follow a similar pattern in social network. 
+
+2. As time pass, the connection between the participants become closer, according to the working day in start and end, we can see there are more lines between participant, so the centre of this chart is very dark, weekend charts shows the same change, in the start, at weekend, some people only connected with 2 or 3 people, there is a social connection centre, but some people are not in this net. while, in the end, there are three centre in the social network, maybe as the time pass, three centres will become one
+
+3. The social network pattern is quite different between working days and weekends. 
+
