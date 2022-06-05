@@ -1,5 +1,5 @@
 ---
-title: "Take-Home Exercise 7"
+title: "Take-Home Exercise 6"
 description: |
   With reference to bullet point 2 of Challenge 1 of VAST Challenge 2022, I will reveal the patterns of community interactions of the city of Engagement, Ohio USA by using social network analysis approach.
 author:
